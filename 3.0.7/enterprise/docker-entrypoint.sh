@@ -28,7 +28,6 @@ if [ "$1" == "neo4j" ]; then
     setting "dbms.memory.heap.max_size" "${NEO4J_dbms_memory_heap_maxSize:-512}" neo4j-wrapper.conf
     setting "dbms.unmanaged_extension_classes" "${NEO4J_dbms_unmanagedExtensionClasses:-}"
     setting "dbms.allow_format_migration" "${NEO4J_dbms_allowFormatMigration:-}"
-
     setting "com.graphaware.runtime.enabled" "true"
     setting "com.graphaware.module.ES.2" "com.graphaware.module.es.ElasticSearchModuleBootstrapper"
     setting "com.graphaware.module.ES.uri" "${THREESIXTYVIEW_ESURI:-}"
@@ -44,6 +43,9 @@ if [ "$1" == "neo4j" ]; then
             exit 1
         fi
 
+        setting "dbms.connector.http.address" "127.0.0.1:7474"
+        setting "dbms.connector.https.address" "127.0.0.1:7473"
+        setting "dbms.connector.bolt.address" "127.0.0.1:7687"
         bin/neo4j start || \
             (cat logs/neo4j.log && echo "Neo4j failed to start" && exit 1)
 
