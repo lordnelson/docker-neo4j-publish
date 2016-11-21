@@ -22,6 +22,11 @@ if [ "$1" == "neo4j" ]; then
     setting "dbms.memory.heap.max_size" "${NEO4J_dbms_memory_heap_maxSize:-512M}"
     setting "dbms.unmanaged_extension_classes" "${NEO4J_dbms_unmanagedExtensionClasses:-}"
     setting "dbms.allow_format_migration" "${NEO4J_dbms_allowFormatMigration:-}"
+    setting "com.graphaware.runtime.enabled" "true"
+    setting "com.graphaware.module.ES.2" "com.graphaware.module.es.ElasticSearchModuleBootstrapper"
+    setting "com.graphaware.module.ES.uri" "${THREESIXTYVIEW_ESURI:-}"
+    setting "com.graphaware.module.ES.port" "9200"
+    setting "com.graphaware.module.ES.initializeUntil" "1472851440000"
 
     if [ "${NEO4J_AUTH:-}" == "none" ]; then
         setting "dbms.security.auth_enabled" "false"

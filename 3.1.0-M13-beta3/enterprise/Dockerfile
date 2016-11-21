@@ -16,6 +16,12 @@ RUN curl --fail --silent --show-error --location --remote-name ${NEO4J_URI} \
     && mv /var/lib/neo4j-* /var/lib/neo4j \
     && rm ${NEO4J_TARBALL}
 
+WORKDIR /var/lib/neo4j/plugins
+
+RUN curl --fail --silent --show-error --location http://products.graphaware.com/download/uuid/latest -o graphaware-uuid-3.0.6.43.11.jar \
+    && curl --fail --silent --show-error --location http://products.graphaware.com/download/framework-server-community/latest -o graphaware-server-community-all-3.0.6.43.jar \
+    && curl --fail --silent --show-error --location http://products.graphaware.com/download/neo4j-to-elasticsearch/latest -o graphaware-neo4j-to-elasticsearch-3.0.6.43.6.jar
+
 WORKDIR /var/lib/neo4j
 
 RUN mv data /data \
