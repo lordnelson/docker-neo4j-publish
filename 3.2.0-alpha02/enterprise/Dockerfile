@@ -1,12 +1,12 @@
-FROM java:openjdk-8-jre-alpine
+FROM openjdk:8-jre-alpine
 
 RUN apk add --no-cache --quiet \
     bash \
     curl
 
-ENV NEO4J_SHA256 72cc945be0775de5626a4d379db216fedc68c4f00b00468837d5d64db49098cc
-ENV NEO4J_TARBALL neo4j-community-3.1.0-RC1-unix.tar.gz
-ARG NEO4J_URI=http://dist.neo4j.org/neo4j-community-3.1.0-RC1-unix.tar.gz
+ENV NEO4J_SHA256 6c07e9571409f631bd1a61c76a46028a0ecc1113541f91fc4ef9c8d9b63ffd2a
+ENV NEO4J_TARBALL neo4j-enterprise-3.2.0-alpha02-unix.tar.gz
+ARG NEO4J_URI=http://dist.neo4j.org/neo4j-enterprise-3.2.0-alpha02-unix.tar.gz
 
 COPY ./local-package/* /tmp/
 

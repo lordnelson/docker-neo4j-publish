@@ -22,11 +22,6 @@ if [ "$1" == "neo4j" ]; then
     setting "dbms.memory.heap.max_size" "${NEO4J_dbms_memory_heap_maxSize:-512M}"
     setting "dbms.unmanaged_extension_classes" "${NEO4J_dbms_unmanagedExtensionClasses:-}"
     setting "dbms.allow_format_migration" "${NEO4J_dbms_allowFormatMigration:-}"
-    setting "com.graphaware.runtime.enabled" "true"
-    setting "com.graphaware.module.ES.2" "com.graphaware.module.es.ElasticSearchModuleBootstrapper"
-    setting "com.graphaware.module.ES.uri" "${THREESIXTYVIEW_ESURI:-}"
-    setting "com.graphaware.module.ES.port" "9200"
-    setting "com.graphaware.module.ES.initializeUntil" "1472851440000"
 
     if [ "${NEO4J_AUTH:-}" == "none" ]; then
         setting "dbms.security.auth_enabled" "false"
@@ -47,12 +42,14 @@ if [ "$1" == "neo4j" ]; then
     setting "dbms.connector.https.listen_address" "0.0.0.0:7473"
     setting "dbms.connector.bolt.listen_address" "0.0.0.0:7687"
     setting "dbms.mode" "${NEO4J_dbms_mode:-}"
+    setting "dbms.connectors.default_advertised_address" "${NEO4J_dbms_connectors_defaultAdvertisedAddress:-}"
     setting "ha.server_id" "${NEO4J_ha_serverId:-}"
     setting "ha.host.data" "${NEO4J_ha_host_data:-}"
     setting "ha.host.coordination" "${NEO4J_ha_host_coordination:-}"
     setting "ha.initial_hosts" "${NEO4J_ha_initialHosts:-}"
     setting "causal_clustering.expected_core_cluster_size" "${NEO4J_causalClustering_expectedCoreClusterSize:-}"
     setting "causal_clustering.initial_discovery_members" "${NEO4J_causalClustering_initialDiscoveryMembers:-}"
+    setting "causal_clustering.discovery_advertised_address" "${NEO4J_causalClustering_discoveryAdvertisedAddress:-$(hostname):5000}"
     setting "causal_clustering.transaction_advertised_address" "${NEO4J_causalClustering_transactionAdvertisedAddress:-$(hostname):6000}"
     setting "causal_clustering.raft_advertised_address" "${NEO4J_causalClustering_raftAdvertisedAddress:-$(hostname):7000}"
 
