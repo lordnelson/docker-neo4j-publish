@@ -3,16 +3,10 @@
 setting() {
     setting="${1}"
     value="${2}"
-    file="${3:-neo4j.conf}"
-
-    if [ ! -f "conf/${file}" ]; then
-        if [ -f "conf/neo4j.conf" ]; then
-            file="neo4j.conf"
-        fi
-    fi
+    file="neo4j.conf"
 
     if [ -n "${value}" ]; then
-        if grep --quiet --fixed-strings "${setting}=" conf/"${file}"; then
+        if grep -q -F "${setting}=" conf/"${file}"; then
             sed --in-place "s|.*${setting}=.*|${setting}=${value}|" conf/"${file}"
         else
             echo "${setting}=${value}" >>conf/"${file}"
@@ -23,16 +17,18 @@ setting() {
 if [ "$1" == "neo4j" ]; then
     setting "dbms.tx_log.rotation.retention_policy" "${NEO4J_dbms_txLog_rotation_retentionPolicy:-100M size}"
     setting "dbms.memory.pagecache.size" "${NEO4J_dbms_memory_pagecache_size:-512M}"
-    setting "wrapper.java.additional=-Dneo4j.ext.udc.source" "${NEO4J_UDC_SOURCE:-docker}" neo4j-wrapper.conf
-    setting "dbms.memory.heap.initial_size" "${NEO4J_dbms_memory_heap_maxSize:-512}" neo4j-wrapper.conf
-    setting "dbms.memory.heap.max_size" "${NEO4J_dbms_memory_heap_maxSize:-512}" neo4j-wrapper.conf
+    setting "wrapper.java.additional=-Dneo4j.ext.udc.source" "${NEO4J_UDC_SOURCE:-docker}"
+    setting "dbms.memory.heap.initial_size" "${NEO4J_dbms_memory_heap_maxSize:-512M}"
+    setting "dbms.memory.heap.max_size" "${NEO4J_dbms_memory_heap_maxSize:-512M}"
     setting "dbms.unmanaged_extension_classes" "${NEO4J_dbms_unmanagedExtensionClasses:-}"
     setting "dbms.allow_format_migration" "${NEO4J_dbms_allowFormatMigration:-}"
+
     setting "com.graphaware.runtime.enabled" "true"
     setting "com.graphaware.module.ES.2" "com.graphaware.module.es.ElasticSearchModuleBootstrapper"
     setting "com.graphaware.module.ES.uri" "${THREESIXTYVIEW_ESURI:-}"
     setting "com.graphaware.module.ES.port" "9200"
     setting "com.graphaware.module.ES.initializeUntil" "1472851440000"
+
 
     if [ "${NEO4J_AUTH:-}" == "none" ]; then
         setting "dbms.security.auth_enabled" "false"
@@ -42,50 +38,27 @@ if [ "$1" == "neo4j" ]; then
             echo "Invalid value for password. It cannot be 'neo4j', which is the default."
             exit 1
         fi
-
-        setting "dbms.connector.http.address" "127.0.0.1:7474"
-        setting "dbms.connector.https.address" "127.0.0.1:7473"
-        setting "dbms.connector.bolt.address" "127.0.0.1:7687"
-        bin/neo4j start || \
-            (cat logs/neo4j.log && echo "Neo4j failed to start" && exit 1)
-
-        end="$((SECONDS+100))"
-        while true; do
-            http_code="$(curl --silent --write-out %{http_code} --user "neo4j:${password}" --output /dev/null http://localhost:7474/db/data/ || true)"
-
-            if [[ "${http_code}" = "200" ]]; then
-                break;
-            fi
-
-            if [[ "${http_code}" = "401" ]]; then
-                curl --fail --silent --show-error --user neo4j:neo4j \
-                     --data '{"password": "'"${password}"'"}' \
-                     --header 'Content-Type: application/json' \
-                     http://localhost:7474/user/neo4j/password
-                break;
-            fi
-
-            if [[ "${SECONDS}" -ge "${end}" ]]; then
-                (cat logs/neo4j.log && echo "Neo4j failed to start" && exit 1)
-            fi
-
-            sleep 1
-        done
-
-        bin/neo4j stop
+        bin/neo4j-admin set-initial-password "${password}"
     elif [ -n "${NEO4J_AUTH:-}" ]; then
         echo "Invalid value for NEO4J_AUTH: '${NEO4J_AUTH}'"
         exit 1
     fi
 
-    setting "dbms.connector.http.address" "0.0.0.0:7474"
-    setting "dbms.connector.https.address" "0.0.0.0:7473"
-    setting "dbms.connector.bolt.address" "0.0.0.0:7687"
+    setting "dbms.connectors.default_listen_address" "0.0.0.0"
+    setting "dbms.connector.http.listen_address" "0.0.0.0:7474"
+    setting "dbms.connector.https.listen_address" "0.0.0.0:7473"
+    setting "dbms.connector.bolt.listen_address" "0.0.0.0:7687"
     setting "dbms.mode" "${NEO4J_dbms_mode:-}"
+    setting "dbms.connectors.default_advertised_address" "${NEO4J_dbms_connectors_defaultAdvertisedAddress:-}"
     setting "ha.server_id" "${NEO4J_ha_serverId:-}"
     setting "ha.host.data" "${NEO4J_ha_host_data:-}"
     setting "ha.host.coordination" "${NEO4J_ha_host_coordination:-}"
     setting "ha.initial_hosts" "${NEO4J_ha_initialHosts:-}"
+    setting "causal_clustering.expected_core_cluster_size" "${NEO4J_causalClustering_expectedCoreClusterSize:-}"
+    setting "causal_clustering.initial_discovery_members" "${NEO4J_causalClustering_initialDiscoveryMembers:-}"
+    setting "causal_clustering.discovery_advertised_address" "${NEO4J_causalClustering_discoveryAdvertisedAddress:-$(hostname):5000}"
+    setting "causal_clustering.transaction_advertised_address" "${NEO4J_causalClustering_transactionAdvertisedAddress:-$(hostname):6000}"
+    setting "causal_clustering.raft_advertised_address" "${NEO4J_causalClustering_raftAdvertisedAddress:-$(hostname):7000}"
 
     [ -f "${EXTENSION_SCRIPT:-}" ] && . ${EXTENSION_SCRIPT}
 
